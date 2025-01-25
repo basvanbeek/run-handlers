@@ -36,7 +36,7 @@ func (r *Reference) run() bool {
 		// next run is still in the future
 		return false
 	}
-	if now.After(r.stopAfter) {
+	if !r.stopAfter.IsZero() && now.After(r.stopAfter) {
 		// we're not allowed to run anymore
 		go r.svc.cancelJob(r) // cancel the job in goroutine to avoid deadlock
 		return false
