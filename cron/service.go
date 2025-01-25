@@ -46,12 +46,7 @@ func (s *Service) AddJob(job Job, at time.Time, opts ...Option) (*Reference, err
 	if s.ctx != nil {
 		r.ctx, r.cancel = context.WithCancel(s.ctx)
 	}
-	log.Info("job added",
-		"job", r.name,
-		"next_run", r.nextRun.String(),
-		"stop_after", r.stopAfter.String(),
-		"max_run", r.maxRun,
-	)
+	log.Info("job added", r.logDetails()...)
 
 	s.jobs = append(s.jobs, r)
 
@@ -93,13 +88,7 @@ func (s *Service) ServeContext(ctx context.Context) error {
 		for i := 0; i < len(s.jobs); i++ {
 			// trigger jobs to see if they need to run
 			if s.jobs[i].run() {
-				log.Info("job triggered",
-					"job", s.jobs[i].name,
-					"next_run", s.jobs[i].nextRun.String(),
-					"stop_after", s.jobs[i].stopAfter.String(),
-					"run_count", s.jobs[i].runCount,
-					"max_run", s.jobs[i].maxRun,
-				)
+				log.Info("job triggered", s.jobs[i].logDetails()...)
 			}
 		}
 		s.mtx.Unlock()

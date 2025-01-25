@@ -63,3 +63,20 @@ func (r *Reference) run() bool {
 func (r *Reference) Cancel() {
 	r.svc.cancelJob(r)
 }
+
+func (r *Reference) logDetails() []any {
+	ss := []any{
+		"job", r.name,
+	}
+	if r.maxRun <= 0 || r.runCount < r.maxRun {
+		ss = append(ss, "next_run", r.nextRun.Format("2006-01-02 15:04:05"))
+	}
+	if !r.stopAfter.IsZero() {
+		ss = append(ss, "stop_after", r.stopAfter.Format("2006-01-02 15:04:05"))
+	}
+	ss = append(ss, "run_count", r.runCount)
+	if r.maxRun > 0 {
+		ss = append(ss, "max_run", r.maxRun)
+	}
+	return ss
+}
