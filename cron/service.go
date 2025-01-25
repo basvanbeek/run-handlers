@@ -10,7 +10,7 @@ import (
 	"github.com/basvanbeek/telemetry/scope"
 )
 
-var log = scope.Register("cront", "cron service")
+var log = scope.Register("cron", "cron service")
 
 type Service struct {
 	ctx  context.Context
