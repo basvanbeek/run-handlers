@@ -1,4 +1,4 @@
-module github.com/basvanbeek/run-handlers/task
+module github.com/basvanbeek/run-handlers/cron
 
 go 1.23.3
 
