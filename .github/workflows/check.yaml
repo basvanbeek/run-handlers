@@ -13,11 +13,19 @@ on:
 jobs:
   check:
     runs-on: ubuntu-latest
+    strategy:
+        matrix:
+            go: ["1.23", "1.22", "1.20"]
+    name: Go ${{ matrix.go }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
         with:
-          go-version-file: go.mod
+          go-version: ${{ matrix.go }}
+          cache-dependency-path: "**/*.sum"
 
       - name: lint all artifacts
         run: make lint
