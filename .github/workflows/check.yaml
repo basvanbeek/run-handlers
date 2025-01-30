@@ -1,0 +1,38 @@
+name: check
+
+on:
+  push:
+    branches:
+      - main
+      - release-**
+  pull_request:
+    branches:
+      - main
+      - release-**
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: lint all artifacts
+        run: make lint
+
+      - name: build all artifacts
+        run: make build
+
+      - name: test all artifacts
+        run: make test
+
+      - name: check
+        run: |
+          if [ ! -z "`git status -s`" ]; then
+            echo "Following files are not consistent with CI:"
+            git status -s
+            git diff
+            exit 1
+          fi
