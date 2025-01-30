@@ -13,9 +13,9 @@ var (
 type Option func(r *Reference) error
 
 // WithMaxRun sets the maximum number of times the job will be run.
-func WithMaxRun(max int) Option {
+func WithMaxRun(maxRun int) Option {
 	return func(r *Reference) error {
-		r.maxRun = max
+		r.maxRun = maxRun
 		return nil
 	}
 }
