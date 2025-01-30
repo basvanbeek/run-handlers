@@ -60,14 +60,15 @@ func (s *Service) cancelJob(r *Reference) {
 		return
 	}
 	for i := 0; i < len(s.jobs); i++ {
-		if s.jobs[i] == r {
-			s.jobs[i] = s.jobs[len(s.jobs)-1]
-			s.jobs[len(s.jobs)-1] = nil
-			s.jobs = s.jobs[:len(s.jobs)-1]
-			r.cancel()
-			log.Debug("job cancelled", "job", r.name)
-			return
+		if s.jobs[i] != r {
+			continue
 		}
+		s.jobs[i] = s.jobs[len(s.jobs)-1]
+		s.jobs[len(s.jobs)-1] = nil
+		s.jobs = s.jobs[:len(s.jobs)-1]
+		r.cancel()
+		log.Debug("job canceled", "job", r.name)
+		return
 	}
 }
 

@@ -43,7 +43,7 @@ func (r *Reference) run() bool {
 	}
 	// check if we already need to exit
 	if err := r.ctx.Err(); err != nil {
-		// job has been cancelled
+		// job has been canceled
 		return false
 	}
 	// time to run the job
