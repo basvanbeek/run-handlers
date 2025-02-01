@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
         matrix:
-            go: ["nightly", "1.23.5"]
+            go: ["1.23.5"]
     name: Go ${{ matrix.go }}
     steps:
       - name: Checkout
