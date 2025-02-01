@@ -29,6 +29,7 @@ jobs:
             go: ["1.23.5"]
             modules: ${{ needs.resolve-modules.outputs.modules }}
     name: Go ${{ matrix.go }}
+    needs: resolve-modules
     steps:
       - name: Checkout
         uses: actions/checkout@v4
