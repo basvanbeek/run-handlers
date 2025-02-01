@@ -19,7 +19,7 @@ jobs:
         uses: actions/checkout@v4
       - id: set-modules
         run: |
-          PATHS=$(find . -mindepth 1 -maxdepth 1 -type f -name go.mod -printf '{"workdir":"%h"},')
+          PATHS=$(find . -mindepth 2 -maxdepth 2 -type f -name go.mod -printf '{"workdir":"%h"},')
           echo "PATHS: ${PATHS}"
           echo "modules={\"include\": [${PATHS%?}]}" >> $GITHUB_OUTPUT
           echo "I have stored: ${GITHUB_OUTPUT}"
