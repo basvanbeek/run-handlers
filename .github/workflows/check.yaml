@@ -14,17 +14,16 @@ jobs:
   resolve-modules:
     name: Resolve modules
     runs-on: ubuntu-latest
+    outputs:
+        modules: ${{ steps.set-modules.outputs.modules }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
       - id: set-modules
         run: |
-          PATHS=$(find . -mindepth 2 -maxdepth 2 -type f -name go.mod -printf '{"workdir":"%h"},')
-          echo "PATHS: ${PATHS%?}"
-          echo "modules={\"include\": [${PATHS%?}]}" >> $GITHUB_OUTPUT
-      - name: show modules
-        run: |
-          echo "${{ outputs.modules }}"
+          MODULES=$(find . -mindepth 2 -maxdepth 2 -type f -name go.mod -printf '{"workdir":"%h"},')
+          MODULES="[$(MODULES%,}]" # remove trailing comma
+          echo "modules=$MODULES" >> "$GITHUB_OUTPUT"
   check:
     needs: resolve-modules
     name: Go ${{ matrix.go }}
@@ -32,7 +31,7 @@ jobs:
     strategy:
         matrix:
             go: ["1.23.5"]
-            modules: ${{ fromJson(needs.resolve-modules.outputs.modules) }}
+            module: ${{ fromJson(needs.resolve-modules.outputs.modules) }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -45,22 +44,22 @@ jobs:
 
       - name: download dependencies
         run: |
-            cd ${{ matrix.modules.workdir }}
+            cd ${{ matrix.module.workdir }}
             go mod download
 
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v6
         with:
-          working-directory: ${{ matrix.modules.workdir }}
+          working-directory: ${{ matrix.module.workdir }}
 
       - name: build all artifacts
         run: |
-            cd ${{ matrix.modules.workdir }}
+            cd ${{ matrix.module.workdir }}
             go build ./...
 
       - name: test all artifacts
         run: |
-            cd ${{ matrix.modules.workdir }}
+            cd ${{ matrix.module.workdir }}
             go test ./...
 
       - name: check
