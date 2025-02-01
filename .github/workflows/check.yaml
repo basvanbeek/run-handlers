@@ -20,9 +20,8 @@ jobs:
       - id: set-modules
         run: |
           PATHS=$(find . -mindepth 2 -maxdepth 2 -type f -name go.mod -printf '{"workdir":"%h"},')
-          echo "PATHS: ${PATHS}"
+          echo "PATHS: ${PATHS%?}"
           echo "modules={\"include\": [${PATHS%?}]}" >> $GITHUB_OUTPUT
-          echo "I have stored: ${GITHUB_OUTPUT}"
   check:
     runs-on: ubuntu-latest
     strategy:
