@@ -22,7 +22,7 @@ jobs:
       - id: set-modules
         run: |
           MODULES=$(find . -mindepth 2 -maxdepth 2 -type f -name go.mod -printf '{"workdir":"%h"},')
-          MODULES="[$(MODULES%,}]" # remove trailing comma
+          MODULES="[${MODULES%,}]" # remove trailing comma
           echo "modules=$MODULES" >> "$GITHUB_OUTPUT"
   check:
     needs: resolve-modules
