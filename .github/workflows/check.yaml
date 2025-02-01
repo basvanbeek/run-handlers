@@ -20,6 +20,7 @@ jobs:
       - id: set-modules
         run: |
           PATHS=$(find . -mindepth 1 -maxdepth 1 -type f -name go.mod -printf '{"workdir":"%h"},')
+          echo "PATHS: ${PATHS}"
           echo "modules={\"include\": [${PATHS%?}]}" >> $GITHUB_OUTPUT
           echo "I have stored: ${GITHUB_OUTPUT}"
   check:
@@ -27,7 +28,7 @@ jobs:
     strategy:
         matrix:
             go: ["1.23.5"]
-            modules: ${{ needs.resolve-modules.outputs.modules }}
+            modules: ${{ fromJson(needs.resolve-modules.outputs.modules) }}
     name: Go ${{ matrix.go }}
     needs: resolve-modules
     steps:
