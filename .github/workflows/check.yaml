@@ -24,15 +24,15 @@ jobs:
           echo "modules={\"include\": [${PATHS%?}]}" >> $GITHUB_OUTPUT
       - name: show modules
         run: |
-          echo "${{ needs.resolve-modules.outputs }}"
+          echo "${{ resolve-modules.outputs.modules }}"
   check:
+    needs: resolve-modules
+    name: Go ${{ matrix.go }}
     runs-on: ubuntu-latest
     strategy:
         matrix:
             go: ["1.23.5"]
             modules: ${{ fromJson(needs.resolve-modules.outputs.modules) }}
-    name: Go ${{ matrix.go }}
-    needs: resolve-modules
     steps:
       - name: Checkout
         uses: actions/checkout@v4
