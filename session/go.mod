@@ -4,7 +4,7 @@ go 1.23.5
 
 require (
 	github.com/basvanbeek/run v0.2.0
-	github.com/basvanbeek/run-handlers/redis v0.0.0-20250130170556-7847ff83de21
+	github.com/basvanbeek/run-handlers/redis v0.0.0-20250131163849-cd496c4a8d52
 	github.com/basvanbeek/telemetry v0.2.0
 	github.com/gorilla/securecookie v1.1.2
 	github.com/gorilla/sessions v1.4.0
