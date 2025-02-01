@@ -24,7 +24,7 @@ jobs:
           echo "modules={\"include\": [${PATHS%?}]}" >> $GITHUB_OUTPUT
       - name: show modules
         run: |
-          ${{ needs.resolve-modules.outputs }}
+          echo "${{ needs.resolve-modules.outputs }}"
   check:
     runs-on: ubuntu-latest
     strategy:
