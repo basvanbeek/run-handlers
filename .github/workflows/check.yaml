@@ -24,7 +24,7 @@ jobs:
           echo "modules={\"include\": [${PATHS%?}]}" >> $GITHUB_OUTPUT
       - name: show modules
         run: |
-          echo "${{ resolve-modules.outputs.modules }}"
+          echo "${{ outputs.modules }}"
   check:
     needs: resolve-modules
     name: Go ${{ matrix.go }}
