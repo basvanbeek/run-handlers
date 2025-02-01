@@ -27,6 +27,9 @@ jobs:
           go-version: ${{ matrix.go }}
           cache-dependency-path: "**/*.sum"
 
+      - name: download dependencies
+        run: make deps
+
       - name: lint all artifacts
         run: make lint
 

@@ -1,10 +1,10 @@
 module github.com/basvanbeek/run-handlers/postgresql
 
-go 1.23.3
+go 1.23.5
 
 require (
 	github.com/basvanbeek/multierror v0.1.0
-	github.com/basvanbeek/run v0.1.1
+	github.com/basvanbeek/run v0.2.0
 	github.com/jackc/pgx/v5 v5.7.2
 )
 
