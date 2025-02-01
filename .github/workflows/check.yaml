@@ -26,7 +26,7 @@ jobs:
           echo "modules=$MODULES" >> "$GITHUB_OUTPUT"
   check:
     needs: resolve-modules
-    name: Go ${{ matrix.go }}
+    name: Go ${{ matrix.go }} / ${{ matrix.module.workdir }}
     runs-on: ubuntu-latest
     strategy:
         matrix:
