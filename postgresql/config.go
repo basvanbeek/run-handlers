@@ -86,10 +86,10 @@ func (c *Config) FlagSet() *run.FlagSet {
 
 	flags := run.NewFlagSet("Database options")
 
-	flags.StringVar(&c.DSN, c.prefix(DSN),
+	flags.SensitiveStringVar(&c.DSN, c.prefix(DSN),
 		c.DSN, "data source name")
 
-	flags.StringVar(&c.DSNRead, c.prefix(ReadOnlyDSN),
+	flags.SensitiveStringVar(&c.DSNRead, c.prefix(ReadOnlyDSN),
 		c.DSNRead, "read-only data source name")
 
 	flags.Int32Var(&c.MaxIdleConnections, c.prefix(MaxIdleConnections),
