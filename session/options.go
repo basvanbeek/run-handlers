@@ -5,6 +5,7 @@ import (
 	"math"
 	"time"
 
+	"github.com/gorilla/securecookie"
 	"github.com/gorilla/sessions"
 )
 
@@ -48,6 +49,18 @@ func WithSessionOptions(so *sessions.Options) Option {
 			return errors.New("sessions.Options is nil")
 		}
 		s.options = so
+		return nil
+	}
+}
+
+// WithKeyPairs sets the key pairs for the session store.
+// The default is a secure cookie with a 32 byte key.
+func WithKeyPairs(keyPairs ...[]byte) Option {
+	return func(s *store) error {
+		if len(keyPairs) == 0 {
+			return errors.New("no key pairs provided")
+		}
+		s.codecs = securecookie.CodecsFromPairs(keyPairs...)
 		return nil
 	}
 }
