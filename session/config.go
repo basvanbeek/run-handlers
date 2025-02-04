@@ -41,7 +41,7 @@ func (c *Config) PreRun() (err error) {
 		WithKeyPairs([]byte("secret-key")),
 		WithMaxLength(4096),
 		WithKeyPrefix("session"),
-		WithSerializer(JSONSerializer{}),
+		WithSerializer(GobSerializer{}),
 		WithSessionOptions(&sessions.Options{
 			Path:        "/",
 			MaxAge:      60 * 5,
