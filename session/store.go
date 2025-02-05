@@ -1,6 +1,7 @@
 package session
 
 import (
+	"context"
 	"encoding/base32"
 	"errors"
 	"net/http"
@@ -12,7 +13,7 @@ import (
 	"github.com/gorilla/sessions"
 )
 
-func NewRedisStore(redis *hndredis.Config, opts ...Option) (sessions.Store, error) {
+func NewRedisStore(redis *hndredis.Config, opts ...Option) (Handler, error) {
 	s := &store{
 		redis:         redis,
 		defaultMaxAge: 5 * 60,
@@ -45,6 +46,24 @@ type store struct {
 	maxLength     int
 	keyPrefix     string
 	serializer    Serializer
+}
+
+func (s *store) GetBySessionID(name, sessionID string) (*sessions.Session, error) {
+	session := sessions.NewSession(s, name)
+	options := *s.options
+	session.Options = &options
+	session.ID = sessionID
+	session.IsNew = false
+
+	data, err := s.redis.Pool().
+		Get(context.Background(), s.keyPrefix+session.ID).Bytes()
+	if err != nil {
+		return nil, err
+	}
+	if err = s.serializer.Deserialize(data, session); err != nil {
+		return nil, err
+	}
+	return session, nil
 }
 
 func (s *store) Get(r *http.Request, name string) (*sessions.Session, error) {

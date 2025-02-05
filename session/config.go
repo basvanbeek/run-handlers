@@ -12,9 +12,14 @@ import (
 
 var logger = scope.Register("session", "session store")
 
+type Handler interface {
+	sessions.Store
+	GetBySessionID(name, sessionID string) (*sessions.Session, error)
+}
+
 type Config struct {
 	Redis *hndredis.Config
-	store sessions.Store
+	store Handler
 }
 
 func (c *Config) Name() string {
@@ -55,7 +60,7 @@ func (c *Config) PreRun() (err error) {
 	return err
 }
 
-func (c *Config) Store() sessions.Store {
+func (c *Config) Handler() Handler {
 	return c.store
 }
 
