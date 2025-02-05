@@ -13,6 +13,9 @@ import (
 	"github.com/gorilla/sessions"
 )
 
+// NewRedisStore returns a new gorilla sessions.Store compatible Handler backed
+// by Redis. Handler extends the gorilla sessions.Store interface with a
+// GetBySessionID method.
 func NewRedisStore(redis *hndredis.Config, opts ...Option) (Handler, error) {
 	s := &store{
 		redis:         redis,
@@ -48,6 +51,10 @@ type store struct {
 	serializer    Serializer
 }
 
+// GetBySessionID returns a session by its session ID and name.
+// Name is used to create a new session object with the provided name, so it
+// can be stored in the session registry.
+// GetBySessionID implements the Handler interface.
 func (s *store) GetBySessionID(name, sessionID string) (*sessions.Session, error) {
 	session := sessions.NewSession(s, name)
 	options := *s.options
@@ -66,10 +73,12 @@ func (s *store) GetBySessionID(name, sessionID string) (*sessions.Session, error
 	return session, nil
 }
 
+// Get implements the gorilla sessions.Store interface.
 func (s *store) Get(r *http.Request, name string) (*sessions.Session, error) {
 	return sessions.GetRegistry(r).Get(s, name)
 }
 
+// New implements the gorilla sessions.Store interface.
 func (s *store) New(r *http.Request, name string) (*sessions.Session, error) {
 	var (
 		err  error
@@ -99,6 +108,7 @@ func (s *store) New(r *http.Request, name string) (*sessions.Session, error) {
 	return session, err
 }
 
+// Save implements the gorilla sessions.Store interface.
 func (s *store) Save(r *http.Request, w http.ResponseWriter, session *sessions.Session) error {
 	var encoded string
 
