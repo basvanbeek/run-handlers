@@ -19,7 +19,7 @@ import (
 func NewRedisStore(redis *hndredis.Config, opts ...Option) (Handler, error) {
 	s := &store{
 		redis:         redis,
-		defaultMaxAge: 5 * 60,
+		defaultMaxAge: 48 * 60 * 60,
 		options: &sessions.Options{
 			Path:        "/",
 			Domain:      "",
