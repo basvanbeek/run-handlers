@@ -1,4 +1,5 @@
 GO_MODULES := $(shell find . -mindepth 1 -maxdepth 1 -type d)
+export GOPRIVATE := github.com/basvanbeek
 
 all: deps lint build test
 

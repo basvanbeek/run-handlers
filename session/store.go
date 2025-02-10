@@ -8,9 +8,10 @@ import (
 	"strings"
 	"time"
 
-	hndredis "github.com/basvanbeek/run-handlers/redis"
 	"github.com/gorilla/securecookie"
 	"github.com/gorilla/sessions"
+
+	hndredis "github.com/basvanbeek/run-handlers/redis"
 )
 
 // NewRedisStore returns a new gorilla sessions.Store compatible Handler backed
@@ -19,7 +20,7 @@ import (
 func NewRedisStore(redis *hndredis.Config, opts ...Option) (Handler, error) {
 	s := &store{
 		redis:         redis,
-		defaultMaxAge: 5 * 60,
+		defaultMaxAge: 48 * 60 * 60,
 		options: &sessions.Options{
 			Path:        "/",
 			Domain:      "",
