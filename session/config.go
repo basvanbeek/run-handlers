@@ -9,14 +9,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/basvanbeek/multierror"
-	hndredis "github.com/basvanbeek/run-handlers/redis"
-	"github.com/basvanbeek/telemetry/scope"
 	"github.com/gorilla/securecookie"
 	"github.com/gorilla/sessions"
 
+	"github.com/basvanbeek/multierror"
 	"github.com/basvanbeek/run"
 	"github.com/basvanbeek/run/pkg/flag"
+	"github.com/basvanbeek/telemetry/scope"
+
+	"github.com/basvanbeek/run-handlers/redis"
 )
 
 var logger = scope.Register("session", "session store")
@@ -40,8 +41,7 @@ type Handler interface {
 }
 
 type Config struct {
-	Redis *hndredis.Config
-
+	Redis          *redis.Config
 	SecretKeys     string
 	MaxAge         int
 	MaxIdle        time.Duration

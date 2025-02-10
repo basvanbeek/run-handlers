@@ -8,9 +8,10 @@ import (
 	"strings"
 	"time"
 
-	hndredis "github.com/basvanbeek/run-handlers/redis"
 	"github.com/gorilla/securecookie"
 	"github.com/gorilla/sessions"
+
+	hndredis "github.com/basvanbeek/run-handlers/redis"
 )
 
 // NewRedisStore returns a new gorilla sessions.Store compatible Handler backed
