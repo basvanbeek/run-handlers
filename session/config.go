@@ -46,6 +46,7 @@ type Config struct {
 	MaxAge         int
 	MaxIdle        time.Duration
 	InsecureCookie bool
+	NotPartitioned bool
 	Prefix         string
 	MaxLength      int
 
@@ -102,6 +103,9 @@ func (c *Config) FlagSet() *run.FlagSet {
 	flags.BoolVar(&c.InsecureCookie, flagSessionInsecureCookie, c.InsecureCookie,
 		"Use insecure cookies (no HTTPS) for development purposes")
 
+	flags.BoolVar(&c.NotPartitioned, "session-not-partitioned", c.NotPartitioned,
+		"Disable partitioning of session cookies")
+
 	flags.StringVar(&c.Prefix, flagSessionPrefix, c.Prefix,
 		"Session key prefix")
 
@@ -156,7 +160,7 @@ func (c *Config) PreRun() (err error) {
 			MaxAge:      c.MaxAge,
 			Secure:      !c.InsecureCookie,
 			HttpOnly:    true,
-			Partitioned: true,
+			Partitioned: !c.NotPartitioned,
 			SameSite:    http.SameSiteStrictMode,
 		}),
 	}
