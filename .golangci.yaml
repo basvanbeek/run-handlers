@@ -1,12 +1,4 @@
 linters-settings:
-  depguard:
-    list-type: blacklist
-    packages:
-      # logging is allowed only by logutils.Log, logrus
-      # is allowed to use only in logutils package
-      - github.com/sirupsen/logrus
-    packages-with-error-message:
-      - github.com/sirupsen/logrus: "logging is allowed only by logutils.Log"
   dupl:
     threshold: 400
   exhaustive:
@@ -14,7 +6,6 @@ linters-settings:
   funlen:
     lines: 500
     statements: 100
-  gci:
   goconst:
     min-len: 10
     min-occurrences: 10
@@ -54,7 +45,6 @@ linters-settings:
   misspell:
     locale: US
   nolintlint:
-    allow-leading-space: true # don't require machine-readable nolint directives (i.e. with no leading space)
     allow-unused: false # report any unused nolint directives
     require-explanation: false # don't require an explanation for nolint directives
     require-specific: false # don't require nolint directives to be specific about which linter is being skipped

@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	ErrIntervalTooShort = errors.New("interval needs to be at least 1 minute")
+	ErrIntervalTooShort = errors.New("interval needs to the same or larger than the scheduler interval")
 )
 
 type Option func(r *Reference) error
@@ -23,7 +23,7 @@ func WithMaxRun(maxRun int) Option {
 // WithInterval sets the interval between runs of the job.
 func WithInterval(interval time.Duration) Option {
 	return func(r *Reference) error {
-		if interval < time.Minute {
+		if interval < time.Second {
 			return ErrIntervalTooShort
 		}
 		r.interval = interval
@@ -38,6 +38,14 @@ func WithStopAfter(stopAfter time.Time) Option {
 			return errors.New("stopAfter needs to be at least one hour into future")
 		}
 		r.stopAfter = stopAfter
+		return nil
+	}
+}
+
+// WithIntervalMode sets the interval mode of the job.
+func WithIntervalMode(mode IntervalMode) Option {
+	return func(r *Reference) error {
+		r.mode = mode
 		return nil
 	}
 }
