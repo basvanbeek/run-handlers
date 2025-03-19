@@ -3,6 +3,7 @@ package cron
 import (
 	"context"
 	"errors"
+	"fmt"
 	"sync"
 	"time"
 
@@ -12,12 +13,36 @@ import (
 
 var log = scope.Register("cron", "cron service")
 
+const (
+	flagSchedulerInterval = "scheduler-interval"
+
+	defaultSchedulerInterval = 1 * time.Minute
+)
+
 type Service struct {
+	SchedulerInterval time.Duration
+
 	ctx  context.Context
 	done bool
-
 	mtx  sync.Mutex
 	jobs []*Reference
+}
+
+func (s *Service) FlagSet() *run.FlagSet {
+	fs := run.NewFlagSet(s.Name())
+
+	fs.DurationVar(&s.SchedulerInterval, flagSchedulerInterval,
+		defaultSchedulerInterval, "interval between scheduler runs")
+
+	return fs
+}
+
+func (s *Service) Validate() error {
+	if s.SchedulerInterval < time.Second {
+		return errors.New("scheduler interval needs to be at least one second")
+	}
+
+	return nil
 }
 
 func (s *Service) Name() string {
@@ -26,15 +51,21 @@ func (s *Service) Name() string {
 
 func (s *Service) AddJob(job Job, at time.Time, opts ...Option) (*Reference, error) {
 	r := &Reference{
-		svc:     s,
-		nextRun: at,
-		job:     job,
+		svc: s,
+		job: job,
 	}
+	r.nextRun.Store(&at)
+
 	for _, opt := range opts {
 		if err := opt(r); err != nil {
 			return nil, err
 		}
 	}
+	if r.interval < s.SchedulerInterval {
+		return nil, fmt.Errorf("%w (%s)", ErrIntervalTooShort,
+			s.SchedulerInterval.String())
+	}
+
 	if r.name == "" {
 		r.name = "anonymous"
 	}
@@ -81,7 +112,7 @@ func (s *Service) ServeContext(ctx context.Context) error {
 	s.mtx.Unlock()
 	for {
 		// set timer so we don't get back here within that time period.
-		timer, cancel := context.WithTimeout(ctx, 1*time.Minute)
+		timer, cancel := context.WithTimeout(ctx, s.SchedulerInterval)
 		now := time.Now()
 		log.Debug("cron start iteration")
 		// iterate over registered jobs
@@ -119,4 +150,7 @@ func (s *Service) ServeContext(ctx context.Context) error {
 	}
 }
 
-var _ run.ServiceContext = &Service{}
+var (
+	_ run.Config         = (*Service)(nil)
+	_ run.ServiceContext = (*Service)(nil)
+)

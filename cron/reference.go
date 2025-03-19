@@ -2,8 +2,12 @@ package cron
 
 import (
 	"context"
+	"sync/atomic"
 	"time"
 )
+
+// maxTime is the maximum time that can be represented by a time.Time.
+var maxTime = time.Unix(1<<63-62135596801, 999999999)
 
 // Job holds a function which can be scheduled to run through the cron.Service.
 type Job func(ctx context.Context) error
@@ -14,15 +18,23 @@ type Reference struct {
 	svc       *Service
 	name      string
 	lastRun   time.Time
-	nextRun   time.Time
+	nextRun   atomic.Pointer[time.Time]
 	stopAfter time.Time
 	interval  time.Duration
+	mode      IntervalMode
 	runCount  int
 	maxRun    int
 	job       Job
 	ctx       context.Context
 	cancel    context.CancelFunc
 }
+
+type IntervalMode int
+
+const (
+	IntervalModeOnTick IntervalMode = iota
+	IntervalModeBetweenRuns
+)
 
 func (r *Reference) run() bool {
 	// see if we need to run the job
@@ -32,7 +44,7 @@ func (r *Reference) run() bool {
 		return false
 	}
 	now := time.Now()
-	if r.nextRun.After(now) {
+	if r.nextRun.Load().After(now) {
 		// next run is still in the future
 		return false
 	}
@@ -50,11 +62,22 @@ func (r *Reference) run() bool {
 	r.runCount++
 	r.lastRun = now
 	if r.interval > 0 {
-		r.nextRun = r.lastRun.Add(r.interval)
+		if r.mode == IntervalModeOnTick {
+			nextRun := r.lastRun.Add(r.interval)
+			r.nextRun.Store(&nextRun)
+		} else {
+			// we need to move nextRun sufficiently beyond the possible run time
+			// of this job to avoid running it multiple times concurrently
+			r.nextRun.Store(&maxTime)
+		}
 	}
 	go func() {
 		if err := r.job(r.ctx); err != nil {
 			log.Error("job failed", err, "job", r.name)
+		}
+		if r.interval > 0 && r.mode == IntervalModeBetweenRuns {
+			nextRun := time.Now().Add(r.interval)
+			r.nextRun.Store(&nextRun)
 		}
 	}()
 	return true
@@ -69,7 +92,7 @@ func (r *Reference) logDetails() []any {
 		"job", r.name,
 	}
 	if r.maxRun <= 0 || r.runCount < r.maxRun {
-		ss = append(ss, "next_run", r.nextRun.Format("2006-01-02 15:04:05"))
+		ss = append(ss, "next_run", r.nextRun.Load().Format("2006-01-02 15:04:05"))
 	}
 	if !r.stopAfter.IsZero() {
 		ss = append(ss, "stop_after", r.stopAfter.Format("2006-01-02 15:04:05"))
