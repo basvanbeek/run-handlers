@@ -1,4 +1,4 @@
-package mysql
+package dbpool
 
 import (
 	"context"
@@ -8,8 +8,6 @@ import (
 	"sync"
 	"time"
 
-	_ "github.com/go-sql-driver/mysql" // register our mysql driver
-
 	"github.com/basvanbeek/multierror"
 	"github.com/basvanbeek/run"
 	"github.com/basvanbeek/run/pkg/flag"
@@ -17,7 +15,6 @@ import (
 
 // package flags.
 const (
-	defaultDSN                = "user:pass@tcp(localhost:3306)/dbname"
 	defaultMaxOpenConnections = 50
 	defaultMaxIdleConnections = 0
 	defaultMaxConnLifetime    = 5 * time.Second
@@ -62,10 +59,6 @@ func (c *Config) FlagSet() *run.FlagSet {
 	if envDSN := os.Getenv("DSN"); envDSN != "" {
 		c.DSN = envDSN
 	}
-	if c.DSN == "" {
-		c.DSN = defaultDSN
-	}
-
 	if envReadOnlyDSN := os.Getenv("DSN_READ_ONLY"); envReadOnlyDSN != "" {
 		c.DSNRead = envReadOnlyDSN
 	}
