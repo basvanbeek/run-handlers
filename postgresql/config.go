@@ -15,7 +15,7 @@ import (
 
 // package flags.
 const (
-	defaultDSN                = "postgres://birdsight:birdsight@localhost:3306/birdsight"
+	defaultDSN                = "postgres://user:pass@localhost:3306/dbname"
 	defaultMaxOpenConnections = 50
 	defaultMaxIdleConnections = 0
 	defaultMaxConnLifetime    = 5 * time.Second
