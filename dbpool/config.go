@@ -1,7 +1,8 @@
-package postgresql
+package dbpool
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"os"
 	"sync"
@@ -10,12 +11,10 @@ import (
 	"github.com/basvanbeek/multierror"
 	"github.com/basvanbeek/run"
 	"github.com/basvanbeek/run/pkg/flag"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 // package flags.
 const (
-	defaultDSN                = "postgres://user:pass@localhost:3306/dbname"
 	defaultMaxOpenConnections = 50
 	defaultMaxIdleConnections = 0
 	defaultMaxConnLifetime    = 5 * time.Second
@@ -39,8 +38,8 @@ type Config struct {
 	MaxConnLifetime    time.Duration
 	MaxConnIdleTime    time.Duration
 
-	pool         *pgxpool.Pool
-	readOnlyPool *pgxpool.Pool
+	pool         *sql.DB
+	readOnlyPool *sql.DB
 }
 
 func (c *Config) prefix(s string) string {
@@ -60,10 +59,6 @@ func (c *Config) FlagSet() *run.FlagSet {
 	if envDSN := os.Getenv("DSN"); envDSN != "" {
 		c.DSN = envDSN
 	}
-	if c.DSN == "" {
-		c.DSN = defaultDSN
-	}
-
 	if envReadOnlyDSN := os.Getenv("DSN_READ_ONLY"); envReadOnlyDSN != "" {
 		c.DSNRead = envReadOnlyDSN
 	}
@@ -124,27 +119,21 @@ func (c *Config) Validate() error {
 	return mErr
 }
 
-func (c *Config) createPool(dsn string) (pool *pgxpool.Pool, err error) {
-	var pgxConfig *pgxpool.Config
-	pgxConfig, err = pgxpool.ParseConfig(dsn)
+func (c *Config) createPool(dsn string) (pool *sql.DB, err error) {
+	pool, err = sql.Open("mysql", dsn)
 	if err != nil {
-		return nil, fmt.Errorf("db dsn parse failed: %w", err)
+		return nil, fmt.Errorf("db open failed: %w", err)
 	}
-	pgxConfig.MaxConnLifetime = c.MaxConnLifetime
-	pgxConfig.MaxConnLifetimeJitter = c.MaxConnLifetime / 10
-	pgxConfig.MaxConnIdleTime = c.MaxConnIdleTime
-	pgxConfig.MaxConns = c.MaxOpenConnections
-	pgxConfig.MinConns = c.MaxIdleConnections
 
-	pool, err = pgxpool.NewWithConfig(context.Background(), pgxConfig)
-	if err != nil {
-		return nil, fmt.Errorf("db pool creation failed: %w", err)
-	}
+	pool.SetConnMaxLifetime(c.MaxConnLifetime)
+	pool.SetConnMaxIdleTime(c.MaxConnIdleTime)
+	pool.SetMaxOpenConns(int(c.MaxOpenConnections))
+	pool.SetMaxIdleConns(int(c.MaxIdleConnections))
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	if err = pool.Ping(ctx); err != nil {
+	if err = pool.PingContext(ctx); err != nil {
 		return nil, fmt.Errorf("db ping failed: %w", err)
 	}
 
@@ -194,14 +183,14 @@ func (c *Config) PreRun() error {
 }
 
 // Pool returns the established database connection pool handler.
-func (c *Config) Pool() *pgxpool.Pool {
+func (c *Config) Pool() *sql.DB {
 	return c.pool
 }
 
 // ReadOnlyPool returns the established read-only database connection pool
 // handler. If no read-only connection pool is established, the default pool
 // will be returned.
-func (c *Config) ReadOnlyPool() *pgxpool.Pool {
+func (c *Config) ReadOnlyPool() *sql.DB {
 	return c.readOnlyPool
 }
 
