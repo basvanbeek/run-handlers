@@ -11,7 +11,11 @@ import (
 	"github.com/basvanbeek/telemetry/scope"
 )
 
-var log = scope.Register("cron", "cron service")
+var (
+	log       = scope.Register("cron", "cron service")
+	mtx       sync.Mutex
+	scheduler *Service
+)
 
 const (
 	flagSchedulerInterval = "scheduler-interval"
@@ -26,6 +30,15 @@ type Service struct {
 	done bool
 	mtx  sync.Mutex
 	jobs []*Reference
+}
+
+func (s *Service) Initialize() {
+	mtx.Lock()
+	defer mtx.Unlock()
+	if scheduler != nil {
+		return
+	}
+	scheduler = s
 }
 
 func (s *Service) FlagSet() *run.FlagSet {
@@ -150,7 +163,18 @@ func (s *Service) ServeContext(ctx context.Context) error {
 	}
 }
 
+func AddJob(job Job, at time.Time, opts ...Option) (*Reference, error) {
+	mtx.Lock()
+	s := scheduler
+	mtx.Unlock()
+	if s == nil {
+		return nil, errors.New("cron service not initialized")
+	}
+	return s.AddJob(job, at, opts...)
+}
+
 var (
+	_ run.Initializer    = (*Service)(nil)
 	_ run.Config         = (*Service)(nil)
 	_ run.ServiceContext = (*Service)(nil)
 )
