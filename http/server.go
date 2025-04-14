@@ -107,10 +107,10 @@ func (s *Service) Serve() error {
 		return err
 	}
 	if s.TLSConfig != nil {
-		return s.Server.ServeTLS(s.l, "", "")
+		return s.ServeTLS(s.l, "", "")
 	}
 	if s.SecureHeaders {
-		s.Server.Handler = SecurityHandler(s.Server.Handler)
+		s.Handler = SecurityHandler(s.Handler)
 	}
 	return s.Server.Serve(s.l)
 }
@@ -121,7 +121,7 @@ func (s *Service) GracefulStop() {
 	defer cancel()
 
 	if s.Server != nil {
-		_ = s.Server.Shutdown(ctx)
+		_ = s.Shutdown(ctx)
 	}
 	if s.l != nil {
 		_ = s.l.Close()
