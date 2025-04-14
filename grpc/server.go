@@ -1,4 +1,4 @@
-// Copyright (c) Bas van Beek 2024.
+// Copyright (c) Bas van Beek 2025.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -136,7 +136,7 @@ func (s *Service) Serve() error {
 // GracefulStop implements run.Service.
 func (s *Service) GracefulStop() {
 	if s.l != nil {
-		s.Server.Stop()
+		s.Stop()
 		_ = s.l.Close()
 	}
 }

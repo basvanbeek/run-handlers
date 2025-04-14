@@ -1,91 +1,34 @@
-linters-settings:
-  dupl:
-    threshold: 400
-  exhaustive:
-    default-signifies-exhaustive: false
-  funlen:
-    lines: 500
-    statements: 100
-  goconst:
-    min-len: 10
-    min-occurrences: 10
-  gocognit:
-    min-complexity: 50
-  gocritic:
-    enabled-tags:
-      - diagnostic
-      - experimental
-      - style
-    disabled-checks:
-      - dupImport # https://github.com/go-critic/go-critic/issues/845
-      - ifElseChain
-      - octalLiteral
-      - whyNoLint
-      - wrapperFunc
-      - sloppyReassign
-  gocyclo:
-    min-complexity: 30
-  goimports:
-    local-prefixes: github.com/golangci/golangci-lint
-  #  golint:
-  #    min-confidence: 0
-  govet:
-    enable-all: true
-    settings:
-      printf:
-        funcs:
-          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Infof
-          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Warnf
-          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Errorf
-          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Fatalf
-    disable:
-      - fieldalignment
-  lll:
-    line-length: 140
-  misspell:
-    locale: US
-  nolintlint:
-    allow-unused: false # report any unused nolint directives
-    require-explanation: false # don't require an explanation for nolint directives
-    require-specific: false # don't require nolint directives to be specific about which linter is being skipped
-
+version: "2"
 linters:
-  # please, do not use `enable-all`: it's deprecated and will be removed soon.
-  # inverted configuration with `enable-all` and `disable` is not scalable during updates of golangci-lint
-  disable-all: true
+  default: none
   enable:
-    - revive
+    - asciicheck
     - bodyclose
+    - copyloopvar
     - dogsled
     - errcheck
-    - copyloopvar
     - exhaustive
     - funlen
     - gochecknoinits
+    - gocognit
     - goconst
     - gocritic
     - gocyclo
-    - gofmt
+    - godot
     - goprintffuncname
     - gosec
-    - gosimple
     - govet
     - ineffassign
     - lll
     - misspell
     - noctx
+    - nolintlint
+    - revive
     - rowserrcheck
     - staticcheck
-    - stylecheck
-    - typecheck
     - unconvert
     - unparam
     - unused
-    - godot
-    - nolintlint
-    - asciicheck
-    - gocognit
-
   # don't enable:
   # - golint
   # - dupl
@@ -107,24 +50,87 @@ linters:
   # - varcheck (deprecated by unused)
   # - structcheck (deprecated by unused)
   # - deadcode (deprecated by unused)
-
-
-issues:
-  # Excluding configuration per-path, per-linter, per-text and per-source
-  exclude-rules:
-    - path: _test\.go
-      linters:
-        - gomnd
-
-    # https://github.com/go-critic/go-critic/issues/926
-    - linters:
-        - gocritic
-      text: "unnecessaryDefer:"
-    - linters:
-        - revive
-      text: "unexported-return:"
-  exclude-dirs:
-    - scratch
-    - tests
-  include:
-    - EXC0002
+  settings:
+    dupl:
+      threshold: 400
+    exhaustive:
+      default-signifies-exhaustive: false
+    funlen:
+      lines: 500
+      statements: 100
+    gocognit:
+      min-complexity: 50
+    goconst:
+      min-len: 10
+      min-occurrences: 10
+    gocritic:
+      disabled-checks:
+        - dupImport
+        - ifElseChain
+        - octalLiteral
+        - whyNoLint
+        - wrapperFunc
+        - sloppyReassign
+      enabled-tags:
+        - diagnostic
+        - experimental
+        - style
+    gocyclo:
+      min-complexity: 30
+    govet:
+      disable:
+        - fieldalignment
+      enable-all: true
+      settings:
+        printf:
+          funcs:
+            - (github.com/golangci/golangci-lint/pkg/logutils.Log).Infof
+            - (github.com/golangci/golangci-lint/pkg/logutils.Log).Warnf
+            - (github.com/golangci/golangci-lint/pkg/logutils.Log).Errorf
+            - (github.com/golangci/golangci-lint/pkg/logutils.Log).Fatalf
+    lll:
+      line-length: 140
+    misspell:
+      locale: US
+    nolintlint:
+      require-explanation: false
+      require-specific: false
+      allow-unused: false
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    rules:
+      - linters:
+          - mnd
+        path: _test\.go
+      - linters:
+          - gocritic
+        text: 'unnecessaryDefer:'
+      - linters:
+          - revive
+        text: 'unexported-return:'
+    paths:
+      - scratch
+      - tests
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  enable:
+    - gofmt
+  settings:
+    goimports:
+      local-prefixes:
+        - github.com/golangci/golangci-lint
+  exclusions:
+    generated: lax
+    paths:
+      - scratch
+      - tests
+      - third_party$
+      - builtin$
+      - examples$
