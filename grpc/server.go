@@ -136,7 +136,7 @@ func (s *Service) Serve() error {
 // GracefulStop implements run.Service.
 func (s *Service) GracefulStop() {
 	if s.l != nil {
-		s.Server.Stop()
+		s.Stop()
 		_ = s.l.Close()
 	}
 }
