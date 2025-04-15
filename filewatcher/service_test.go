@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"os"
+	"sync"
 	"testing"
 	"time"
 
@@ -99,7 +100,10 @@ func TestServeContextProcessesFileEvents(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
+	wg := &sync.WaitGroup{}
+	wg.Add(1)
 	go func() {
+		defer wg.Done()
 		err = svc.ServeContext(ctx)
 		require.NoError(t, err)
 	}()
@@ -115,6 +119,9 @@ func TestServeContextProcessesFileEvents(t *testing.T) {
 	case <-time.After(1 * time.Second):
 		t.Fatal("file update event not received")
 	}
+
+	cancel()
+	wg.Wait()
 }
 
 func TestServeContextHandlesWatcherErrors(t *testing.T) {
