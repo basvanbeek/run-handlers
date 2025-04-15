@@ -47,7 +47,7 @@ func TestNameReturnsCorrectValue(t *testing.T) {
 func TestAddWatcherRegistersFileSuccessfully(t *testing.T) {
 	svc := initializeService(t)
 	tempDir := t.TempDir()
-	tempFile := createTempFile(t, tempDir, "initial content")
+	tempFile := createTempFile(t, tempDir, "initial content 1")
 	defer removeTempFile(t, tempFile)
 
 	ch, err := svc.AddWatcher("test-file", tempFile)
@@ -58,7 +58,7 @@ func TestAddWatcherRegistersFileSuccessfully(t *testing.T) {
 func TestAddWatcherFailsForDuplicateName(t *testing.T) {
 	svc := initializeService(t)
 	tempDir := t.TempDir()
-	tempFile := createTempFile(t, tempDir, "initial content")
+	tempFile := createTempFile(t, tempDir, "initial content 2")
 	defer removeTempFile(t, tempFile)
 
 	_, err := svc.AddWatcher("test-file", tempFile)
@@ -72,7 +72,7 @@ func TestAddWatcherFailsForDuplicateName(t *testing.T) {
 func TestRemoveWatcherRemovesFileSuccessfully(t *testing.T) {
 	svc := initializeService(t)
 	tempDir := t.TempDir()
-	tempFile := createTempFile(t, tempDir, "initial content")
+	tempFile := createTempFile(t, tempDir, "initial content 3")
 	defer removeTempFile(t, tempFile)
 
 	_, err := svc.AddWatcher("test-file", tempFile)
@@ -92,7 +92,7 @@ func TestRemoveWatcherFailsForNonExistentName(t *testing.T) {
 func TestServeContextProcessesFileEvents(t *testing.T) {
 	svc := initializeService(t)
 	tempDir := t.TempDir()
-	tempFile := createTempFile(t, tempDir, "initial content")
+	tempFile := createTempFile(t, tempDir, "initial content 4")
 	defer removeTempFile(t, tempFile)
 
 	ch, err := svc.AddWatcher("test-file", tempFile)
@@ -102,13 +102,13 @@ func TestServeContextProcessesFileEvents(t *testing.T) {
 	defer cancel()
 
 	go func() {
-		err := svc.ServeContext(ctx)
+		err = svc.ServeContext(ctx)
 		require.NoError(t, err)
 	}()
 
 	time.Sleep(100 * time.Millisecond)
 
-	err = os.WriteFile(tempFile, []byte("updated content"), 0644)
+	err = os.WriteFile(tempFile, []byte("updated content"), 0600)
 	require.NoError(t, err)
 
 	select {

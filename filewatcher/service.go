@@ -225,20 +225,21 @@ forLoop:
 
 			s.mtx.RLock()
 			for _, reg := range s.f {
-				if strings.EqualFold(event.Name, reg.defaultFilePath) {
-					log.Debug("file watcher event",
-						"name", reg.name, "event", event.Name,
-						"op", event.Op)
-					// try to load the file
-					var b []byte
-					b, err = os.ReadFile(event.Name)
-					if err != nil {
-						log.Error("failed to read file", err,
-							"name", reg.name, "event", event.Name, "op", event.Op)
-						continue
-					}
-					reg.ch <- b
+				if !strings.EqualFold(event.Name, reg.defaultFilePath) {
+					continue
 				}
+				log.Debug("file watcher event",
+					"name", reg.name, "event", event.Name,
+					"op", event.Op)
+				// try to load the file
+				var b []byte
+				b, err = os.ReadFile(event.Name)
+				if err != nil {
+					log.Error("failed to read file", err,
+						"name", reg.name, "event", event.Name, "op", event.Op)
+					continue
+				}
+				reg.ch <- b
 			}
 			s.mtx.RUnlock()
 		case err2, ok := <-s.w.Errors:
