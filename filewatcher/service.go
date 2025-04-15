@@ -41,7 +41,7 @@ type fileReg struct {
 }
 
 type Service struct {
-	mtx *sync.RWMutex
+	mtx sync.RWMutex
 	f   []*fileReg
 	w   *fsnotify.Watcher
 	p   map[string]int
