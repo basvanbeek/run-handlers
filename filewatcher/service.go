@@ -32,12 +32,12 @@ import (
 	"github.com/fsnotify/fsnotify"
 )
 
-var log = scope.Register("filewatcher", "file watcher service")
+var log = scope.Register("file-watcher", "file watcher service")
 
 type fileReg struct {
 	name            string
 	defaultFilePath string
-	ch              chan string
+	ch              chan []byte
 }
 
 type Service struct {
@@ -50,10 +50,10 @@ type Service struct {
 }
 
 func (s *Service) Name() string {
-	return "filewatcher"
+	return "file-watcher"
 }
 
-func (s *Service) AddWatcher(name, fqn string) (<-chan string, error) {
+func (s *Service) AddWatcher(name, fqn string) (<-chan []byte, error) {
 	s.mtx.Lock()
 	defer s.mtx.Unlock()
 
@@ -80,7 +80,7 @@ func (s *Service) AddWatcher(name, fqn string) (<-chan string, error) {
 		}
 
 		s.p[fp]++
-		ch := make(chan string)
+		ch := make(chan []byte)
 		s.f = append(s.f, &fileReg{
 			name:            name,
 			defaultFilePath: fqn,
@@ -99,7 +99,7 @@ func (s *Service) AddWatcher(name, fqn string) (<-chan string, error) {
 		return ch, nil
 	}
 
-	ch := make(chan string)
+	ch := make(chan []byte)
 	s.f = append(s.f, &fileReg{
 		name:            name,
 		defaultFilePath: fqn,
@@ -226,9 +226,18 @@ forLoop:
 			s.mtx.RLock()
 			for _, reg := range s.f {
 				if strings.EqualFold(event.Name, reg.defaultFilePath) {
-					log.Debug("file watcher event", "name", reg.name, "event", event.Name,
+					log.Debug("file watcher event",
+						"name", reg.name, "event", event.Name,
 						"op", event.Op)
-					reg.ch <- event.Name
+					// try to load the file
+					var b []byte
+					b, err = os.ReadFile(event.Name)
+					if err != nil {
+						log.Error("failed to read file", err,
+							"name", reg.name, "event", event.Name, "op", event.Op)
+						continue
+					}
+					reg.ch <- b
 				}
 			}
 			s.mtx.RUnlock()
