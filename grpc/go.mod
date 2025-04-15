@@ -1,6 +1,6 @@
 module github.com/basvanbeek/run-handlers/grpc
 
-go 1.23.5
+go 1.24.2
 
 require (
 	github.com/basvanbeek/multierror v0.1.0
