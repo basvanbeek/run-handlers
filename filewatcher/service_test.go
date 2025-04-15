@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"os"
-	"sync"
 	"testing"
 	"time"
 
@@ -30,9 +29,8 @@ func removeTempFile(t *testing.T, path string) {
 func initializeService(t *testing.T) *Service {
 	t.Helper()
 	svc := &Service{
-		mtx: &sync.RWMutex{},
-		f:   []*fileReg{},
-		p:   make(map[string]int),
+		f: []*fileReg{},
+		p: make(map[string]int),
 	}
 	_ = svc.Validate()
 	_ = svc.PreRun()
