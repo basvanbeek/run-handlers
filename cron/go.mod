@@ -1,6 +1,6 @@
 module github.com/basvanbeek/run-handlers/cron
 
-go 1.23.5
+go 1.24.2
 
 require (
 	github.com/basvanbeek/run v0.2.1

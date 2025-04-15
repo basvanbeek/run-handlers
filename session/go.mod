@@ -1,11 +1,11 @@
 module github.com/basvanbeek/run-handlers/session
 
-go 1.23.5
+go 1.24.2
 
 require (
 	github.com/basvanbeek/multierror v0.1.0
 	github.com/basvanbeek/run v0.2.1
-	github.com/basvanbeek/run-handlers/redis v0.2.1
+	github.com/basvanbeek/run-handlers/redis v0.2.2
 	github.com/basvanbeek/telemetry v0.2.0
 	github.com/gorilla/securecookie v1.1.2
 	github.com/gorilla/sessions v1.4.0

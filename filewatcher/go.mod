@@ -1,6 +1,6 @@
 module github.com/basvanbeek/run-handlers/filewatcher
 
-go 1.23.0
+go 1.24.2
 
 require (
 	github.com/basvanbeek/multierror v0.1.0
