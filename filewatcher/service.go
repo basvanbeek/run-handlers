@@ -225,11 +225,33 @@ forLoop:
 				continue
 			}
 
+			var (
+				onKubernetes bool
+				kubeDir      string
+			)
+			// test if event.Name ends with /..data
+			// this signals we are on a kubernetes cluster
+			// we specifically look for the <volumemount>/..data directory
+			// which is the default for kubernetes symlink wizardry.
+			// a create event on it tells us that the secret has been modified
+			if event.Op.Has(fsnotify.Create) && strings.HasSuffix(event.Name, "/..data") {
+				kubeDir = filepath.Dir(event.Name)
+				onKubernetes = true
+			}
+
 			s.mtx.RLock()
 			for _, reg := range s.f {
-				if !strings.EqualFold(event.Name, reg.defaultFilePath) {
+				if onKubernetes {
+					// kubernetes filter
+					if !strings.EqualFold(kubeDir, filepath.Dir(reg.defaultFilePath)) {
+						continue
+					}
+					event.Name = reg.defaultFilePath
+				} else if !strings.EqualFold(event.Name, reg.defaultFilePath) {
+					// local file filter
 					continue
 				}
+
 				log.Debug("file watcher event",
 					"name", reg.name, "event", event.Name,
 					"op", event.Op)
