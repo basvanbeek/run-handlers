@@ -218,6 +218,8 @@ forLoop:
 				err = fmt.Errorf("file watcher event channel closed unexpectedly: %w", err)
 				break forLoop
 			}
+			log.Debug("file watcher event",
+				"name", event.Name, "op", event.Op)
 			if event.Op&fsnotify.Write != fsnotify.Write && event.Op&fsnotify.Create != fsnotify.Create {
 				// file not modified or created
 				continue
