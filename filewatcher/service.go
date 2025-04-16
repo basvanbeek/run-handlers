@@ -247,11 +247,9 @@ forLoop:
 						continue
 					}
 					event.Name = reg.defaultFilePath
-				} else {
+				} else if !strings.EqualFold(event.Name, reg.defaultFilePath) {
 					// local file filter
-					if !strings.EqualFold(event.Name, reg.defaultFilePath) {
-						continue
-					}
+					continue
 				}
 
 				log.Debug("file watcher event",
