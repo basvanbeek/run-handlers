@@ -90,7 +90,7 @@ func TestRemoveWatcherFailsForNonExistentName(t *testing.T) {
 
 func TestServeContextProcessesFileEvents(t *testing.T) {
 	t.Skip("fix for github action runner, locally works fine")
-	
+
 	svc := initializeService(t)
 	tempDir := t.TempDir()
 	tempFile := createTempFile(t, tempDir, "initial content 4")
