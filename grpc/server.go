@@ -113,6 +113,8 @@ func (s *Service) Serve() error {
 		grpc.MaxSendMsgSize(s.MaxGRPCStreamMsgSize),
 	}, s.Options...)
 
+	s.Options = append(s.Options, s.i.GetServerOptions()...)
+
 	s.Server = grpc.NewServer(s.Options...)
 
 	// now that we have the internal grpc.Server object, run all callbacks
