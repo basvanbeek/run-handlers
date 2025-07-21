@@ -79,8 +79,10 @@ func (s *Service) Name() string {
 
 func (s *Service) AddJob(job Job, at time.Time, opts ...Option) (*Reference, error) {
 	r := &Reference{
-		svc: s,
-		job: job,
+		svc:      s,
+		job:      job,
+		interval: s.SchedulerInterval,
+		mode:     IntervalModeOnTick,
 	}
 	r.nextRun.Store(&at)
 
