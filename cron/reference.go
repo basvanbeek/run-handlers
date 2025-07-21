@@ -29,18 +29,19 @@ type Job func(ctx context.Context) error
 // Reference holds the pointer to a scheduled Job. It can be used to cancel
 // a job when no longer needed.
 type Reference struct {
-	svc       *Service
 	name      string
-	lastRun   time.Time
-	nextRun   atomic.Pointer[time.Time]
-	stopAfter time.Time
 	interval  time.Duration
 	mode      IntervalMode
-	runCount  int
 	maxRun    int
-	job       Job
-	ctx       context.Context
-	cancel    context.CancelFunc
+	stopAfter time.Time
+
+	svc      *Service
+	job      Job
+	ctx      context.Context
+	cancel   context.CancelFunc
+	lastRun  time.Time
+	nextRun  atomic.Pointer[time.Time]
+	runCount int
 }
 
 type IntervalMode int
@@ -48,6 +49,7 @@ type IntervalMode int
 const (
 	IntervalModeOnTick IntervalMode = iota
 	IntervalModeBetweenRuns
+	IntervalUntilDone
 )
 
 func (r *Reference) run() bool {
@@ -88,8 +90,11 @@ func (r *Reference) run() bool {
 	go func() {
 		if err := r.job(r.ctx); err != nil {
 			log.Error("job failed", err, "job", r.name)
+		} else if r.mode == IntervalUntilDone {
+			// if the job is done, we can cancel it
+			go r.svc.cancelJob(r)
 		}
-		if r.interval > 0 && r.mode == IntervalModeBetweenRuns {
+		if r.interval > 0 && (r.mode == IntervalModeBetweenRuns || r.mode == IntervalUntilDone) {
 			nextRun := time.Now().Add(r.interval)
 			r.nextRun.Store(&nextRun)
 		}

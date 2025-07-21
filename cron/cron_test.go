@@ -17,6 +17,7 @@ package cron_test
 
 import (
 	"context"
+	"errors"
 	"sync"
 	"testing"
 	"time"
@@ -70,7 +71,7 @@ func TestService_TestJobs(t *testing.T) {
 	defer stopService()
 
 	now := time.Now()
-	var countA, countB, countC, countD int
+	var countA, countB, countC, countD, countE int
 	if _, err = s.AddJob(
 		func(context.Context) error {
 			countA++
@@ -120,6 +121,23 @@ func TestService_TestJobs(t *testing.T) {
 	); err != nil {
 		t.Error("expected JobD to be created", err)
 	}
+	var failuresLeft = 2
+	if _, err = s.AddJob(
+		func(context.Context) error {
+			t.Logf("Job E called, failures left: %d", failuresLeft)
+			if failuresLeft > 0 {
+				failuresLeft--
+				return errors.New("simulated failure")
+			}
+			countE++
+			return nil
+		},
+		now,
+		cron.WithIntervalMode(cron.IntervalUntilDone),
+		cron.WithName("jobE"),
+	); err != nil {
+		t.Error("expected JobE to be created", err)
+	}
 
 	// let's run for 3 seconds
 	time.Sleep(3 * time.Second)
@@ -135,5 +153,8 @@ func TestService_TestJobs(t *testing.T) {
 	}
 	if countD < 2 || countD > 4 {
 		t.Errorf("expected Job D count to be around 3, got %d", countB)
+	}
+	if countE != 1 {
+		t.Errorf("expected Job E count to be 1, got %d", countE)
 	}
 }
