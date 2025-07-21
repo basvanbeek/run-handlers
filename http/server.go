@@ -17,6 +17,14 @@ package http
 
 import (
 	"context"
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/rand"
+	"crypto/tls"
+	"crypto/x509"
+	"crypto/x509/pkix"
+	"encoding/pem"
+	"math/big"
 	"net"
 	"net/http"
 	"time"
@@ -101,17 +109,32 @@ func (s *Service) Validate() error {
 // Serve implements run.Service.
 func (s *Service) Serve() error {
 	// listen and serve time
+	if s.SecureHeaders {
+		s.Handler = SecurityHandler(s.Handler)
+	}
+
 	var err error
 	s.l, err = net.Listen("tcp", s.Address)
 	if err != nil {
 		return err
 	}
+
+	var port string
+	if _, port, err = net.SplitHostPort(s.Address); err != nil {
+		return err
+	}
+	if port == "443" && s.TLSConfig == nil {
+		// use ephemeral TLS config
+		s.TLSConfig, err = createEphemeralTLSConfig(30 * 24 * time.Hour)
+		if err != nil {
+			return err
+		}
+	}
+
 	if s.TLSConfig != nil {
 		return s.ServeTLS(s.l, "", "")
 	}
-	if s.SecureHeaders {
-		s.Handler = SecurityHandler(s.Handler)
-	}
+
 	return s.Server.Serve(s.l)
 }
 
@@ -126,6 +149,59 @@ func (s *Service) GracefulStop() {
 	if s.l != nil {
 		_ = s.l.Close()
 	}
+}
+
+func createEphemeralTLSConfig(validFor time.Duration) (*tls.Config, error) {
+	// Generate a private key
+	priv, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	if err != nil {
+		return nil, err
+	}
+
+	// Create a self-signed certificate template
+	template := x509.Certificate{
+		BasicConstraintsValid: true,
+		SerialNumber:          big.NewInt(1),
+		Subject: pkix.Name{
+			Organization: []string{"Ephemeral TLS Certificate"},
+		},
+		NotBefore:   time.Now(),
+		NotAfter:    time.Now().Add(validFor),
+		KeyUsage:    x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature,
+		ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
+	}
+
+	// Generate the self-signed certificate
+	certDER, err := x509.CreateCertificate(
+		rand.Reader, &template, &template, &priv.PublicKey, priv,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	// Encode the certificate and private key in PEM format
+	certPEM := pem.EncodeToMemory(
+		&pem.Block{Type: "CERTIFICATE", Bytes: certDER},
+	)
+	keyPEM, err := x509.MarshalECPrivateKey(priv)
+	if err != nil {
+		return nil, err
+	}
+	keyPEMBlock := pem.EncodeToMemory(
+		&pem.Block{Type: "EC PRIVATE KEY", Bytes: keyPEM},
+	)
+
+	// Load the certificate and key into a tls.Certificate
+	cert, err := tls.X509KeyPair(certPEM, keyPEMBlock)
+	if err != nil {
+		return nil, err
+	}
+
+	// Create and return the TLS config
+	return &tls.Config{
+		Certificates: []tls.Certificate{cert},
+		MinVersion:   tls.VersionTLS13,
+	}, nil
 }
 
 var (
